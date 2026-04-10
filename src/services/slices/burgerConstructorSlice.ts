@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { TIngredient, TConstructorIngredient } from '../../utils/types';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -9,16 +9,26 @@ export const burgerConstructorSlice = createSlice({
     ingredients: [] as TConstructorIngredient[]
   },
   reducers: {
-    addIngredient: (state, action: { payload: TIngredient }) => {
-      if (action.payload.type === 'bun') {
-        state.bun = action.payload;
-      } else {
-        const newIngredient: TConstructorIngredient = {
-          ...action.payload,
-          id: uuidv4()
-        };
-        state.ingredients.push(newIngredient);
-      }
+    addIngredient: {
+      reducer: (
+        state,
+        action: PayloadAction<TIngredient | TConstructorIngredient>
+      ) => {
+        if (action.payload.type === 'bun') {
+          state.bun = action.payload;
+        } else {
+          state.ingredients.push(action.payload as TConstructorIngredient);
+        }
+      },
+      prepare: (ingredient: TIngredient) => ({
+        payload:
+          ingredient.type === 'bun'
+            ? ingredient
+            : {
+                ...ingredient,
+                id: uuidv4()
+              }
+      })
     },
     removeIngredient: (state, action: { payload: string }) => {
       state.ingredients = state.ingredients.filter(

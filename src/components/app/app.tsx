@@ -3,7 +3,8 @@ import {
   Route,
   Routes,
   useLocation,
-  useNavigate
+  useNavigate,
+  useParams
 } from 'react-router-dom';
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from '../../services/store';
@@ -32,6 +33,9 @@ type TLocationState = {
   background?: Location;
 };
 
+const formatOrderNumber = (number?: string) =>
+  number ? `#${String(number).padStart(6, '0')}` : '';
+
 const IngredientDetailsPage = () => (
   <main className={styles.detailPageWrap}>
     <h1 className={`${styles.detailHeader} text text_type_main-large mb-3`}>
@@ -41,11 +45,31 @@ const IngredientDetailsPage = () => (
   </main>
 );
 
-const OrderInfoPage = () => (
-  <main className={styles.detailPageWrap}>
-    <OrderInfo />
-  </main>
-);
+const OrderInfoPage = () => {
+  const { number } = useParams();
+  const title = formatOrderNumber(number);
+
+  return (
+    <main className={styles.detailPageWrap}>
+      {title && (
+        <h1 className={`${styles.detailHeader} text text_type_digits-default`}>
+          {title}
+        </h1>
+      )}
+      <OrderInfo />
+    </main>
+  );
+};
+
+const OrderInfoModal = ({ onClose }: { onClose: () => void }) => {
+  const { number } = useParams();
+
+  return (
+    <Modal title={formatOrderNumber(number)} onClose={onClose}>
+      <OrderInfo />
+    </Modal>
+  );
+};
 
 const App = () => {
   const location = useLocation();
@@ -154,19 +178,13 @@ const App = () => {
               />
               <Route
                 path='/feed/:number'
-                element={
-                  <Modal title='' onClose={handleModalClose}>
-                    <OrderInfo />
-                  </Modal>
-                }
+                element={<OrderInfoModal onClose={handleModalClose} />}
               />
               <Route
                 path='/profile/orders/:number'
                 element={
                   <ProtectedRoute>
-                    <Modal title='' onClose={handleModalClose}>
-                      <OrderInfo />
-                    </Modal>
+                    <OrderInfoModal onClose={handleModalClose} />
                   </ProtectedRoute>
                 }
               />
